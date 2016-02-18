@@ -9,11 +9,11 @@ type ClaimsType map[string]interface{}
 type CheckClaims func(ClaimsType) (valid bool, err error)
 
 type Auth struct {
-	Key         []byte
-	Name        string
-	MaxAge      int
-	CheckClaims CheckClaims
-	LoginRoute  string
+	Key          []byte
+	CookieName   string
+	CookieMaxAge int
+	CheckClaims  CheckClaims
+	LoginRoute   string
 }
 
 func New(params Auth) (*Auth, error) {
@@ -34,9 +34,9 @@ func (a *Auth) SetCookie(c *gin.Context, user ClaimsType) error {
 	}
 
 	cookie := http.Cookie{
-		Name:   a.Name,
+		Name:   a.CookieName,
 		Value:  token,
-		MaxAge: a.MaxAge,
+		MaxAge: a.CookieMaxAge,
 	}
 	http.SetCookie(c.Writer, &cookie)
 
@@ -45,7 +45,7 @@ func (a *Auth) SetCookie(c *gin.Context, user ClaimsType) error {
 
 func (a *Auth) UnsetCookie(c *gin.Context) {
 	cookie := http.Cookie{
-		Name:   a.Name,
+		Name:   a.CookieName,
 		Value:  "_",
 		MaxAge: -1,
 	}
@@ -54,7 +54,7 @@ func (a *Auth) UnsetCookie(c *gin.Context) {
 
 func (a *Auth) Middleware(c *gin.Context) {
 	var claims ClaimsType
-	cookie, err := c.Request.Cookie(a.Name)
+	cookie, err := c.Request.Cookie(a.CookieName)
 	if err != nil || cookie == nil {
 		goto FAILED
 	}

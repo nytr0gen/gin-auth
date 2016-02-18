@@ -56,7 +56,7 @@ func initServer() {
 		c.String(http.StatusExpectationFailed, err.Error())
 	})
 
-	r.Run("127.0.0.1:8080")
+	go r.Run("127.0.0.1:8080")
 }
 
 func TestJWT(t *testing.T) {
