@@ -55,7 +55,7 @@ func (a *Auth) Middleware(checkClaims CheckClaims) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var claims ClaimsType
 		cookie, err := c.Request.Cookie(a.CookieName)
-		if err != nil || cookie == nil {
+		if err != nil {
 			goto FAILED
 		}
 
@@ -79,8 +79,10 @@ func (a *Auth) Middleware(checkClaims CheckClaims) gin.HandlerFunc {
 	FAILED:
 		if err != nil {
 			a.UnsetCookie(c)
+			c.Redirect(http.StatusSeeOther, a.LoginRoute)
+		} else {
+			c.String(http.StatusExpectationFailed, "not allowed")
 		}
-		c.Redirect(http.StatusSeeOther, a.LoginRoute)
 		c.Abort()
 	}
 }
