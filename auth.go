@@ -77,7 +77,9 @@ func (a *Auth) Middleware(checkClaims CheckClaims) gin.HandlerFunc {
 		return
 
 	FAILED:
-		a.UnsetCookie(c)
+		if err != nil {
+			a.UnsetCookie(c)
+		}
 		c.Redirect(http.StatusSeeOther, a.LoginRoute)
 		c.Abort()
 	}
