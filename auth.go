@@ -12,7 +12,6 @@ type Auth struct {
 	Key          []byte
 	CookieName   string
 	CookieMaxAge int
-	CheckClaims  CheckClaims
 	LoginRoute   string
 }
 
@@ -52,32 +51,34 @@ func (a *Auth) UnsetCookie(c *gin.Context) {
 	http.SetCookie(c.Writer, &cookie)
 }
 
-func (a *Auth) Middleware(c *gin.Context) {
-	var claims ClaimsType
-	cookie, err := c.Request.Cookie(a.CookieName)
-	if err != nil || cookie == nil {
-		goto FAILED
+func (a *Auth) Middleware(checkClaims CheckClaims) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var claims ClaimsType
+		cookie, err := c.Request.Cookie(a.CookieName)
+		if err != nil || cookie == nil {
+			goto FAILED
+		}
+
+		claims, err = a.ParseToken(cookie.Value)
+		if err != nil {
+			goto FAILED
+		}
+
+		if valid, err := checkClaims(claims); err != nil || !valid {
+			goto FAILED
+		}
+
+		c.Set("user", claims)
+		if _, exists := claims["username"]; exists {
+			c.Set("username", claims["username"])
+		}
+		c.Next()
+
+		return
+
+	FAILED:
+		a.UnsetCookie(c)
+		c.Redirect(http.StatusSeeOther, a.LoginRoute)
+		c.Abort()
 	}
-
-	claims, err = a.ParseToken(cookie.Value)
-	if err != nil {
-		goto FAILED
-	}
-
-	if valid, err := a.Validate(claims); err != nil || !valid {
-		goto FAILED
-	}
-
-	c.Set("user", claims)
-	if _, exists := claims["username"]; exists {
-		c.Set("username", claims["username"])
-	}
-	c.Next()
-
-	return
-
-FAILED:
-	a.UnsetCookie(c)
-	c.Redirect(http.StatusSeeOther, a.LoginRoute)
-	c.Abort()
 }

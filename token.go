@@ -7,19 +7,6 @@ import (
 	"time"
 )
 
-func (a *Auth) Validate(claims ClaimsType) (bool, error) {
-	if expFloat, ok := claims["expiration"].(float64); ok {
-		exp := time.Unix(int64(expFloat), 0)
-		if time.Now().After(exp) {
-			return false, errors.New("JWT expired")
-		}
-	} else {
-		return false, errors.New("No valid claim for expiration")
-	}
-
-	return a.CheckClaims(claims)
-}
-
 func (a *Auth) GetToken(claims ClaimsType) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	for k, v := range claims {
@@ -44,5 +31,14 @@ func (a *Auth) ParseToken(tokenString string) (claims ClaimsType, err error) {
 		return
 	}
 
-	return token.Claims, nil
+	if expFloat, ok := token.Claims["expiration"].(float64); ok {
+		exp := time.Unix(int64(expFloat), 0)
+		if time.Now().After(exp) {
+			err = errors.New("JWT expired")
+		}
+	} else {
+		err = errors.New("No valid claim for expiration")
+	}
+
+	return token.Claims, err
 }

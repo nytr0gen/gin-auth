@@ -24,13 +24,13 @@ func initServer() {
 		CookieMaxAge: 60 * 60, // one hour
 		CookieName:   "sid",
 		LoginRoute:   "/login",
-		CheckClaims: func(claims ClaimsType) (valid bool, err error) {
-			username, ok := claims["username"].(string)
-			return ok && strings.Contains(username, "boss"), nil
-		},
 	})
 
-	authGroup := r.Group("/", authEngine.Middleware)
+	authGroup := r.Group("/")
+	authGroup.Use(authEngine.Middleware(func(claims ClaimsType) (valid bool, err error) {
+		username, ok := claims["username"].(string)
+		return ok && strings.Contains(username, "boss"), nil
+	}))
 	authGroup.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "yay")
 	})
@@ -56,7 +56,7 @@ func initServer() {
 		c.String(http.StatusExpectationFailed, err.Error())
 	})
 
-	go r.Run("127.0.0.1:8080")
+	r.Run("127.0.0.1:8080")
 }
 
 func TestJWT(t *testing.T) {
