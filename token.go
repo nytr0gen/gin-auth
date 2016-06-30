@@ -3,8 +3,9 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"time"
+
+	"gopkg.in/dgrijalva/jwt-go.v2"
 )
 
 func (a *Auth) GetToken(claims ClaimsType) (string, error) {

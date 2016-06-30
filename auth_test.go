@@ -3,18 +3,19 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gopkg.in/dgrijalva/jwt-go.v2"
 )
 
 // TODO tests
 
 func init() {
-	initServer()
+	// initServer()
 }
 
 func initServer() {
